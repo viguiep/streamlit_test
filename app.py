@@ -22,20 +22,19 @@ def main():
     if choice == "Tokenization":
         st.subheader("Tokenization")
         raw_text = st.text_area("Your Text","Enter Text Here")
-        docx = nlp(raw_text)
+        doc = nlp(raw_text)
         if st.button("Tokenize"):
-            spacy_streamlit.visualize_tokens(docx,attrs=['text','pos_','dep_','ent_type_'])
+            spacy_streamlit.visualize_tokens(doc,attrs=['text','pos_','dep_','ent_type_'])
 
     elif choice == "NER":
         st.subheader("Named Entity Recognition")
         raw_text = st.text_area("Your Text","Enter Text Here")
-        docx = nlp(raw_text)
-        spacy_streamlit.visualize_ner(docx,labels=nlp.get_pipe('ner').labels)
+        doc = nlp(raw_text)
+        spacy_streamlit.visualize_ner(doc,labels=nlp.get_pipe('ner').labels)
 
     elif choice == "Sentiment analysis":
         st.subheader("Sentiment analysis")
         raw_text = st.text_area("Your Text","Enter Text Here")
-        docx = nlp(raw_text)
 	
         # Creating graph for sentiment across each sentence in the text inputted
         sents = sent_tokenize(raw_text)
@@ -57,12 +56,11 @@ def main():
     elif choice == "Entity extraction":
         st.subheader("Entity extraction")
         raw_text = st.text_area("Your Text","Enter Text Here")
-        docx = nlp(raw_text)
+        doc = nlp(raw_text)
 	
         # Getting Entity and type of Entity
         entities = []
         entityLabels = []
-        doc = nlp(text)
         for ent in doc.ents:
             entities.append(ent.text)
             entityLabels.append(ent.label_)
