@@ -98,7 +98,7 @@ def main():
     elif choice == "Translate":
         st.subheader("Translate")
         raw_text = st.text_area("Your Text","Enter Text Here")
-	entireText = TextBlob(raw_text)
+        entireText = TextBlob(raw_text)
         summWords = summarize(raw_text)
         st.subheader("Translation")
 
