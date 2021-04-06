@@ -25,7 +25,7 @@ def main():
     st.title("Spacy-Streamlit NLP App")
     #our_image = Image.open(os.path.join('SpaCy_logo.svg.png'))
     #st.image(our_image)
-    menu = ["Tokenization","NER", "Sentiment analysis", "Entity extraction", "Text summarization"]
+    menu = ["Tokenization","NER", "Sentiment analysis", "Entity extraction", "Text summarization", "Translate"]
     choice = st.sidebar.selectbox("Menu",menu)
     if choice == "Tokenization":
         st.subheader("Tokenization")
@@ -94,6 +94,25 @@ def main():
         summWords = summarize(raw_text)
         st.subheader("Summary")
         st.write(summWords)
+
+    elif choice == "Translate":
+        st.subheader("Translate")
+        raw_text = st.text_area("Your Text","Enter Text Here")
+	entireText = TextBlob(raw_text)
+        summWords = summarize(raw_text)
+        st.subheader("Translation")
+
+        lang_dict = {'French':'fr', 'Latin':'la','Catalan':'ca','Chinese Traditional':'zh-TW', 'Romanian':'ro','Russian':'ru', 'Slovak':'sk','Spanish':'es','German':'de','Hungarian':'hu','Indonesian':'id'}
+
+        # word translation using google translate             
+        try:
+            lang = list(lang_dict.keys())
+            activity = st.selectbox("Language", lang)
+            trans = entireText.translate(to=lang_dict[activity])
+            st.write(trans)
+        except:
+            st.markdown('*Error, check your text!*')
+
 
 if __name__ == '__main__':
 	main()
