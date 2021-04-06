@@ -1,13 +1,16 @@
 # Core Pkgs
 import streamlit as st
-# NLP Pkgs
-import spacy_streamlit
-import spacy
-nlp = spacy.load('en_core_web_sm')
 import os
 from PIL import Image
-from textblob import TextBlob
+
+# NLP Pkgs
+import spacy
 import nltk
+import spacy_streamlit
+from gensim.summarization.summarizer import summarize
+from textblob import TextBlob
+
+nlp = spacy.load('en_core_web_sm')
 nltk.download('punkt')
 
 from nltk.tokenize import sent_tokenize
@@ -88,7 +91,9 @@ def main():
     elif choice == "Text summarization":
         st.subheader("Text summarization")
         raw_text = st.text_area("Your Text","Enter Text Here")
-        docx = nlp(raw_text)
+	summWords = summarize(raw_text)
+        st.subheader("Summary")
+        st.write(summWords)
 
 if __name__ == '__main__':
 	main()
