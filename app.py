@@ -19,7 +19,7 @@ def main():
     #st.image(our_image)
     menu = ["Tokenization","NER", "Sentiment analysis", "Entity extraction", "Text summarization"]
     choice = st.sidebar.selectbox("Menu",menu)
-    if choice == "Home":
+    if choice == "Tokenization":
         st.subheader("Tokenization")
         raw_text = st.text_area("Your Text","Enter Text Here")
         docx = nlp(raw_text)
