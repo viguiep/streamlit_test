@@ -7,6 +7,10 @@ nlp = spacy.load('en_core_web_sm')
 import os
 from PIL import Image
 from textblob import TextBlob
+import nltk
+nltk.download('punkt')
+
+from nltk.tokenize import sent_tokenize
 
 def main():
     """A Simple NLP app with Spacy-Streamlit"""
