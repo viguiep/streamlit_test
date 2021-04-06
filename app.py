@@ -12,6 +12,11 @@ nltk.download('punkt')
 
 from nltk.tokenize import sent_tokenize
 
+# Function to take in dictionary of entities, type of entity, and returns specific entities of specific type
+def entRecognizer(entDict, typeEnt):
+    entList = [ent for ent in entDict if entDict[ent] == typeEnt]
+    return entList
+
 def main():
     """A Simple NLP app with Spacy-Streamlit"""
     st.title("Spacy-Streamlit NLP App")
