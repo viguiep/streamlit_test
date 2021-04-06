@@ -37,22 +37,22 @@ def main():
         raw_text = st.text_area("Your Text","Enter Text Here")
         docx = nlp(raw_text)
 	
-	# Creating graph for sentiment across each sentence in the text inputted
-	sents = sent_tokenize(raw_text)
-	entireText = TextBlob(raw_text)
-	sentScores = []
-	for sent in sents:
+        # Creating graph for sentiment across each sentence in the text inputted
+        sents = sent_tokenize(raw_text)
+        entireText = TextBlob(raw_text)
+        sentScores = []
+        for sent in sents:
             text = TextBlob(sent)
             score = text.sentiment[0]
             sentScores.append(score)
 
-	# Plotting sentiment scores per sentencein line graph
-	st.line_chart(sentScores)
+        # Plotting sentiment scores per sentencein line graph
+        st.line_chart(sentScores)
 
-	# Polarity and Subjectivity of the entire text inputted
-	sentimentTotal = entireText.sentiment
-	st.write("The sentiment of the overall text below.")
-	st.write(sentimentTotal)
+        # Polarity and Subjectivity of the entire text inputted
+        sentimentTotal = entireText.sentiment
+        st.write("The sentiment of the overall text below.")
+        st.write(sentimentTotal)
 	
     elif choice == "Entity extraction":
         st.subheader("Entity extraction")
