@@ -91,7 +91,7 @@ def main():
     elif choice == "Text summarization":
         st.subheader("Text summarization")
         raw_text = st.text_area("Your Text","Enter Text Here")
-	summWords = summarize(raw_text)
+        summWords = summarize(raw_text)
         st.subheader("Summary")
         st.write(summWords)
 
