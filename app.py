@@ -17,7 +17,7 @@ def main():
     st.title("Spacy-Streamlit NLP App")
     #our_image = Image.open(os.path.join('SpaCy_logo.svg.png'))
     #st.image(our_image)
-    menu = ["Home","NER", "Sentiment analysis", "Entity extraction", "Text summarization"]
+    menu = ["Tokenization","NER", "Sentiment analysis", "Entity extraction", "Text summarization"]
     choice = st.sidebar.selectbox("Menu",menu)
     if choice == "Home":
         st.subheader("Tokenization")
@@ -58,6 +58,29 @@ def main():
         st.subheader("Entity extraction")
         raw_text = st.text_area("Your Text","Enter Text Here")
         docx = nlp(raw_text)
+	
+        # Getting Entity and type of Entity
+        entities = []
+        entityLabels = []
+        doc = nlp(text)
+        for ent in doc.ents:
+            entities.append(ent.text)
+            entityLabels.append(ent.label_)
+        entDict = dict(zip(entities, entityLabels)) #Creating dictionary with entity and entity types
+
+        # Using function to create lists of entities of each type
+        entOrg = entRecognizer(entDict, "ORG")
+        entCardinal = entRecognizer(entDict, "CARDINAL")
+        entPerson = entRecognizer(entDict, "PERSON")
+        entDate = entRecognizer(entDict, "DATE")
+        entGPE = entRecognizer(entDict, "GPE")
+
+        # Displaying entities of each type
+        st.write("Organization Entities: " + str(entOrg))
+        st.write("Cardinal Entities: " + str(entCardinal))
+        st.write("Personal Entities: " + str(entPerson))
+        st.write("Date Entities: " + str(entDate))
+        st.write("GPE Entities: " + str(entGPE))
 
     elif choice == "Text summarization":
         st.subheader("Text summarization")
