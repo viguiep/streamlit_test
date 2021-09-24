@@ -6,4 +6,4 @@ wikipedia
 # io
 # re
 PyMuPDF # fitz
-streamlit
+streamlit==0.74.1
