@@ -13,12 +13,12 @@ import spacy
 from spacy.lang.en.stop_words import STOP_WORDS
 from string import punctuation
 
-nlp = spacy.load('en_core_web_sm')
+nlp = spacy.load('en_core_web_md')
 extra_words = list(STOP_WORDS) + list(punctuation) + ['\n']
 
-# ---------------------------------------------------
+# ***************************************************
 # TOPIC EXTRACTION
-# ---------------------------------------------------
+# ***************************************************
 def topic_extraction(input_text, input_num):
     docx = nlp(input_text)
 
@@ -34,9 +34,9 @@ def topic_extraction(input_text, input_num):
     return main_topics
 
 
-# ---------------------------------------------------
+# ***************************************************
 # SUMMARIZATION
-# ---------------------------------------------------
+# ***************************************************
 def summarize(input_text, top_n=1):
   docx              = nlp(input_text)
   vocabulary        = [ word.text.lower() for word in docx]
@@ -51,19 +51,30 @@ def summarize(input_text, top_n=1):
                           for word in sent
                           if word.text.lower() in word_count) / len(sent)
                                 for sent in docx.sents}
+  for sent in sent_strength:
+      for token in sent:
+          if 'subj' in token.dep_:
+              if ('PR' in token.tag_) or ('DT' in token.tag_):
+                  sent_strength[sent] /= 4
+                  break
+              for x in token.children:
+                  if ('DT' in x.tag_):
+                      sent_strength[sent] /= 4
+                      break
+
 
   # Extracted sentences in chronological order
   top_sentences     = sorted(sent_strength.values(), reverse=True)
   top_sent          = top_sentences[:top_n]
-  summary           = [sent for sent,strength in sent_strength.items() if strength in top_sent]
-  summary_text      = "".join(x.text for x in summary)
+  summary_list      = [sent.text for sent,strength in sent_strength.items() if strength in top_sent]
+  #summary_text      = "".join(x.text for x in summary)
 
-  return summary_text
+  return summary_list
 
 
-# ---------------------------------------------------
+# ***************************************************
 # PRETTIFY SUMMARY (HTML tricks)
-# ---------------------------------------------------
+# ***************************************************
 def prettify_summary(my_summary, main_topics, nb_sentences = 1):
     # trick to justify the text
     # https://docs.streamlit.io/en/stable/develop_streamlit_components.html#streamlit.components.v1.html
