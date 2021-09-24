@@ -1,2 +1,5 @@
 # streamlit_NLP
-Simple NLP demo via Streamlit
+- upload file
+- summarize
+- get keywords
+- get keywords definitions
