@@ -57,6 +57,7 @@ TODO:
 # ******************************************
 
 import numpy as np
+import re
 import spacy #for summarization
 import wikipedia # for definition
 from io import StringIO # for file upload, drag & drop
@@ -69,7 +70,7 @@ import streamlit.components.v1 as components # to insert HTML (ex. : to justify 
 
 
 # utils = personal library => contains: topic extraction, summarization
-from utils import utils #, pdfparser
+from utils import utils, pdfparser
 
 
 #st.set_page_config(layout="wide") # uncomment to have wide mode
@@ -79,6 +80,7 @@ from utils import utils #, pdfparser
 # ******************************************
 
 input_text = ''
+main_topics = []
 
 st.title('Summary of scientific articles')
 
@@ -90,39 +92,40 @@ st.title('Summary of scientific articles')
 st.sidebar.title('Text upload:')
 
 # upload
+choice_A = "I want to upload a PDF file"
+choice_B = "I want to input some text"
 source = st.sidebar.radio("Choose how to upload your text:",
-                  ("I want to input some text", "I want to upload a file")
+                  (choice_A, choice_B)
                   )
-if source == 'I want to input some text':
+if source == choice_B:
     input_text = st.sidebar.text_area("Write or paste your text in English (between 1,000 and 100,000 characters)",
                               max_chars=100000)
     if len(input_text) < 1000:
-        st.error('Please enter a text in English of minimum 1,000 characters')
+        st.sidebar.error('Please enter a text in English of minimum 1,000 characters')
 
-if source == 'I want to upload a file':
-    uploaded_file = st.sidebar.file_uploader('Upload your file here',type=['txt'])
+if source == choice_A:
+    uploaded_file = st.sidebar.file_uploader('Upload your file here',type=['pdf'])
     if uploaded_file is not None:
-        if uploaded_file.name[-3:] == 'txt':
-            input_text = ''
-            st.write("(text file)")
-            with st.spinner('Processing...'):
-                stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
-                input_text = stringio.read()
-                if len(input_text) < 1000 or len(input_text) > 10000:
-                    st.error('Please upload a file between 1,000 and 10,000 characters')
-        elif uploaded_file.name[-3:] == 'pdf':
+        if uploaded_file.name[-3:] == 'pdf':
+            document = pdfparser.getPDF(uploaded_file)
             st.write("(pdf file)")
+            my_blocks = pdfparser.getConjugatedBlocks(document)
+            police = pdfparser.getMostCommon(my_blocks, 'police')
+            size = pdfparser.getMostCommon(my_blocks, 'size')
+            color = pdfparser.getMostCommon(my_blocks, 'color')
+
             input_text = ''
-            with fitz.open(stream=uploaded_file.read(), filetype="pdf") as document:
-                for page in document:
-                    input_text+= page.getText()
+            for x in my_blocks:
+                if x['police'] == police and x['size'] == size and x['color'] == color:
+                    input_text += x['text']
+                    input_text += '\n'
+
 
 
 # sidebar parameters
-sample_col, upload_col = st.beta_columns(2)
-input_top_n = sample_col.slider(label='How many sentences for the summary?', max_value=10, value=5)
-input_num = upload_col.slider(label='How many words for the topic extraction?', max_value=20, value=10)
-
+left_main_col, right_main_col = st.beta_columns(2)
+nb_sentences = left_main_col.slider(label='How many sentences for the summary?', max_value=10, value=5)
+nb_topics = right_main_col.slider(label='How many words for the topic extraction?', max_value=20, value=10)
 
 
 # ******************************************
@@ -130,38 +133,79 @@ input_num = upload_col.slider(label='How many words for the topic extraction?', 
 # ******************************************
 
 with st.beta_container():
-    st.header('Main topics')
-    if not input_text or not input_num:
-     st.warning('Please input the text AND select a number :)')
-    if input_num == 0:
-     st.warning('Please select a number')
-    if (len(input_text) > 0) and (input_num != 0):
-        main_topics = utils.topic_extraction(input_text, input_num)
-        output_main_topics = ' - '.join(main_topics[:input_num])
-        st.write(output_main_topics)
+    # possible: "warning" instead of "error"
+    if nb_sentences == 0:
+        left_main_col.error('Please select a number')
+    else:
+        left_main_col.warning('Your summary will have %i sentences.' % nb_sentences)
 
+    if nb_topics == 0:
+        right_main_col.error('Please select a number')
+    else:
+        right_main_col.warning('We will extract %i main topics.' % nb_topics)
+
+
+# ***************************************************
+# MAIN TOPICS
+# ***************************************************
 with st.beta_container():
-    st.sidebar.header('Definitions for main topics:')
-    nb_sentences = 1
-    for i, topic in enumerate(main_topics):
-        st.sidebar.markdown('**'+topic.upper()+'**')
-        try:
-            definition = wikipedia.summary(topic, sentences = nb_sentences)
-            st.sidebar.write(definition)
-        except:
-            st.sidebar.write('No definition found.')
+    st.header('Main topics')
+    if (len(input_text) > 0) and (nb_topics != 0):
+        main_topics = utils.topic_extraction(input_text, nb_topics)
+        main_topics = main_topics[:nb_topics]
+        output_main_topics = ' - '.join(main_topics).upper()
+        st.write('**' + output_main_topics + '**')
 
 
+# ***************************************************
+# SUMMARY
+# ***************************************************
 with st.beta_container():
     st.header('Summary:')
     if not input_text:
-        st.warning('Please input the text you want to analyze :)')
+        st.warning('There is no text to analyze yet.')
     else:
-        my_summary = utils.summarize(input_text, input_top_n)
-        html_component = utils.prettify_summary(my_summary, main_topics)
-        components.html(html_component, height = len(my_summary) // 2 )
+        # suppress references (and other content) inside parenthesis
+        pattern = r'\([^)]*\)'
+        filtered_text = re.sub(pattern, '', input_text)
 
+        # compute the summary
+        summary_list = utils.summarize(filtered_text, nb_sentences)
+
+        # output the summary
+        summary_len = len(''.join([x for x in summary_list]))
+        html_component = "<ul>"
+        html_component += ''.join(["<br><li>" + x + "</li>" for x in summary_list])
+        html_component += "</ul>"
+
+        components.html(html_component, height = summary_len // 1.5)
+
+        #html_component = utils.prettify_summary(my_summary, main_topics)
+        #components.html(html_component, height = len(my_summary) // 2 )
+
+
+# ***************************************************
+# ORIGINAL ARTICLE
+# ***************************************************
 with st.beta_container():
-    st.header('Original article:')
-    html_component = """<p align="justify">""" + input_text + """</p>"""
-    components.html(html_component, height = len(input_text) // 2)
+    max_chars_output = 10000
+    st.header('Original article (first %i characters):' % max_chars_output)
+    output_text = input_text[:max_chars_output]
+    output_text = output_text.replace('\n', '<BR><BR>')
+    html_component = """<p align="justify">""" + output_text + """</p>"""
+    components.html(html_component, height = len(output_text) // 2)
+
+
+# ***************************************************
+# DEFINITION OF MAIN TOPICS (sidebar)
+# ***************************************************
+with st.beta_container():
+    st.sidebar.header('Definitions for main topics:')
+    nb_definition_sentences = 1
+    for i, topic in enumerate(main_topics):
+        st.sidebar.markdown('**'+topic.upper()+'**')
+        try:
+            definition = wikipedia.summary(topic, sentences = nb_definition_sentences)
+            st.sidebar.write(definition)
+        except:
+            st.sidebar.write('No definition found.')
