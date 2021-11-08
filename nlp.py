@@ -67,7 +67,7 @@ import fitz # for pdfs
 import streamlit as st
 import streamlit.components.v1 as components # to insert HTML (ex. : to justify the text)
 
-
+from streamlit import caching
 
 # utils = personal library => contains: topic extraction, summarization
 from utils import utils, pdfparser
@@ -97,6 +97,7 @@ choice_B = "I want to input some text"
 source = st.sidebar.radio("Choose how to upload your text:",
                   (choice_A, choice_B)
                   )
+caching.clear_cache()
 if source == choice_B:
     input_text = st.sidebar.text_area("Write or paste your text in English (between 1,000 and 100,000 characters)",
                               max_chars=100000)
