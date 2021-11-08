@@ -195,7 +195,7 @@ with st.beta_container():
     html_component = """<p align="justify">""" + output_text + """</p>"""
     components.html(html_component, height = len(output_text) // 2)
 
-
+"""
 # ***************************************************
 # DEFINITION OF MAIN TOPICS (sidebar)
 # ***************************************************
@@ -209,3 +209,4 @@ with st.beta_container():
             st.sidebar.write(definition)
         except:
             st.sidebar.write('No definition found.')
+"""
