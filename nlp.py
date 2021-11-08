@@ -183,21 +183,6 @@ with st.beta_container():
         #html_component = utils.prettify_summary(my_summary, main_topics)
         #components.html(html_component, height = len(my_summary) // 2 )
 
-"""
-# ***************************************************
-# DEFINITION OF MAIN TOPICS (sidebar)
-# ***************************************************
-with st.beta_container():
-    st.sidebar.header('Definitions for main topics:')
-    nb_definition_sentences = 1
-    for i, topic in enumerate(main_topics):
-        st.sidebar.markdown('**'+topic.upper()+'**')
-        try:
-            definition = wikipedia.summary(topic, sentences = nb_definition_sentences)
-            st.sidebar.write(definition)
-        except:
-            st.sidebar.write('No definition found.')
-"""
 
 # ***************************************************
 # ORIGINAL ARTICLE
