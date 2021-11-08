@@ -183,18 +183,6 @@ with st.beta_container():
         #html_component = utils.prettify_summary(my_summary, main_topics)
         #components.html(html_component, height = len(my_summary) // 2 )
 
-
-# ***************************************************
-# ORIGINAL ARTICLE
-# ***************************************************
-with st.beta_container():
-    max_chars_output = 10000
-    st.header('Original article (first %i characters):' % max_chars_output)
-    output_text = input_text[:max_chars_output]
-    output_text = output_text.replace('\n', '<BR><BR>')
-    html_component = """<p align="justify">""" + output_text + """</p>"""
-    components.html(html_component, height = len(output_text) // 2)
-
 """
 # ***************************************************
 # DEFINITION OF MAIN TOPICS (sidebar)
@@ -210,3 +198,14 @@ with st.beta_container():
         except:
             st.sidebar.write('No definition found.')
 """
+
+# ***************************************************
+# ORIGINAL ARTICLE
+# ***************************************************
+with st.beta_container():
+    max_chars_output = 10000
+    st.header('Original article (first %i characters):' % max_chars_output)
+    output_text = input_text[:max_chars_output]
+    output_text = output_text.replace('\n', '<BR><BR>')
+    html_component = """<p align="justify">""" + output_text + """</p>"""
+    components.html(html_component, height = len(output_text) // 2)
