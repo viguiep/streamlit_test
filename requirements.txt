@@ -9,4 +9,4 @@ PyMuPDF # fitz
 streamlit==0.74.1
 
 trafilatura
-base64
+#base64
