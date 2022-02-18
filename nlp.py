@@ -7,6 +7,10 @@
 # RASA - https://blog.streamlit.io/rasalit/
 # persistent data - https://blog.streamlit.io/streamlit-firestore/
 
+# STREAMLIT TRICKS
+# https://docs.streamlit.io/library/api-reference
+# https://codingfordata.com/8-simple-and-useful-streamlit-tricks-you-should-know/
+
 """
 RAJOUTER LE GIT EXCLUDE
 
@@ -18,7 +22,6 @@ TRICKS:
 (library for looking up the frequencies of words in English & co)
 
 TODO:
-- nb of words of topic extraction = do not change with the slider
 - 2e side bar => How to Add Layout to Streamlit Apps
     - (TB) https://blog.jcharistech.com/2020/10/10/how-to-add-layout-to-streamlit-apps/
 - rajouter du joli HTML
@@ -29,19 +32,15 @@ TODO:
     avec le HTML, changer la couleur des mots clés + avoir la déf. Wikipedia en survol
 - rajouter de quoi gérer les collections (Firebase? Sqlite? MongoDB?) & les users/sessions (Streamlit session state?)
 - rajouter les références à la fin
-- rajouter de quoi retrouver le texte original
 - améliorer le résumé et l'extraction de thématiques (topic extraction)
     - Textacy for topic extraction
     - https://colab.research.google.com/drive/12hj292kacP6jqb4FU1Ni72bff3XqyBOW#scrollTo=UEXuhXcJ39CD
-- mettre le résumé sous la forme de bullet points
 - rajouter un soulignage des points importants
     - cf. Annotated Text Component for Streamlit
     - https://github.com/tvst/st-annotated-text
     - pip install st-annotated-text
 - rajouter les définitions Wikipedia en survol
     - Tooltips?
-- rajouter le parsing du pdf
-- parser aussi les property
 - avoir aussi les tables et le reste
 - avoir une base de vocabulaire entraînée sur les articles scientifiques pour mieux différencier l'importance des mots
 (par TF-IDF - ne pas retenir ni les trop communs, ni les trop rares)
@@ -63,6 +62,8 @@ import wikipedia # for definition
 from io import StringIO # for file upload, drag & drop
 
 import fitz # for pdfs
+import trafilatura # for web content
+import base64 # used to get the data for displaying the pdf
 
 import streamlit as st
 import streamlit.components.v1 as components # to insert HTML (ex. : to justify the text)
@@ -80,6 +81,12 @@ from utils import utils, pdfparser
 input_text = ''
 main_topics = []
 
+def header(url):
+     st.markdown(f'<p style="background-color:#0066cc;color:#33ff33;font-size:24px;border-radius:2%;">{url}</p>', unsafe_allow_html=True)
+
+header("BETA VERSION 0.5")
+# st.sidebar.markdown('_Author: Pascal Viguié._')
+
 st.title('Summary of scientific articles')
 
 
@@ -90,11 +97,20 @@ st.title('Summary of scientific articles')
 st.sidebar.title('Text upload:')
 
 # upload
-choice_A = "I want to upload a PDF file"
-choice_B = "I want to input some text"
-source = st.sidebar.radio("Choose how to upload your text:",
-                  (choice_A, choice_B)
+choice_A = "PDF file"
+choice_B = "plain text"
+choice_C = "web url"
+
+source = st.sidebar.radio("Choose the kind of text you want to upload:",
+                  (choice_A, choice_B, choice_C)
                   )
+
+if source == choice_C:
+    web_url = st.sidebar.text_input('Type the URL:')
+    downloaded = trafilatura.fetch_url(web_url)
+    input_text = trafilatura.extract(downloaded)
+    if not input_text:
+        input_text = 'Enter a valid web url on the side menu.'
 
 if source == choice_B:
     input_text = st.sidebar.text_area("Write or paste your text in English (between 1,000 and 100,000 characters)",
@@ -103,7 +119,15 @@ if source == choice_B:
         st.sidebar.error('Please enter a text in English of minimum 1,000 characters')
 
 if source == choice_A:
+
     uploaded_file = st.sidebar.file_uploader('Upload your file here',type=['pdf'])
+
+    # constructs the data variable to show the pdf file
+    df_data = uploaded_file.getvalue()
+    base64_pdf = base64.b64encode(df_data).decode('utf-8')
+    pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
+
+    # extract content from pdf file
     if uploaded_file is not None:
         if uploaded_file.name[-3:] == 'pdf':
             document = pdfparser.getPDF(uploaded_file)
@@ -122,7 +146,7 @@ if source == choice_A:
 
 
 # sidebar parameters
-left_main_col, right_main_col = st.beta_columns(2)
+left_main_col, right_main_col = st.columns(2)
 nb_sentences = left_main_col.slider(label='How many sentences for the summary?', max_value=10, value=5)
 nb_topics = right_main_col.slider(label='How many words for the topic extraction?', max_value=20, value=10)
 
@@ -131,7 +155,7 @@ nb_topics = right_main_col.slider(label='How many words for the topic extraction
 # AFFICHAGE DES RESULTATS
 # ******************************************
 
-with st.beta_container():
+with st.container():
     # possible: "warning" instead of "error"
     if nb_sentences == 0:
         left_main_col.error('Please select a number')
@@ -147,7 +171,7 @@ with st.beta_container():
 # ***************************************************
 # MAIN TOPICS
 # ***************************************************
-with st.beta_container():
+with st.container():
     st.header('Main topics')
     if (len(input_text) > 0) and (nb_topics != 0):
         main_topics = utils.topic_extraction(input_text, nb_topics)
@@ -159,7 +183,7 @@ with st.beta_container():
 # ***************************************************
 # SUMMARY
 # ***************************************************
-with st.beta_container():
+with st.container():
     st.header('Summary:')
     if not input_text:
         st.warning('There is no text to analyze yet.')
@@ -184,10 +208,19 @@ with st.beta_container():
 
 
 # ***************************************************
+# ORIGINAL PDF
+# ***************************************************
+if source == choice_A:
+    with st.container():
+        st.header('Original PDF file')
+        st.markdown(pdf_display, unsafe_allow_html=True)
+
+
+# ***************************************************
 # ORIGINAL ARTICLE
 # ***************************************************
-with st.beta_container():
-    max_chars_output = 10000
+with st.container():
+    max_chars_output = 5000
     st.header('Original article (first %i characters):' % max_chars_output)
     output_text = input_text[:max_chars_output]
     output_text = output_text.replace('\n', '<BR><BR>')

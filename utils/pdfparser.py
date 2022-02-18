@@ -52,7 +52,7 @@ def getConjugatedBlocks(document_pdf):
     list_of_blocks = []
 
     for i, page in enumerate(document_pdf):
-        blocks = page.getText("dict")["blocks"]
+        blocks = page.get_text("dict")["blocks"]
         for b in blocks:  # iterate through the text blocks
             new_block = ''
             if b['type'] == 0:  # block contains text
