@@ -79,6 +79,7 @@ from utils import utils, pdfparser
 # ******************************************
 
 input_text = ''
+pdf_display = ''
 main_topics = []
 
 def header(url):
@@ -122,13 +123,15 @@ if source == choice_A:
 
     uploaded_file = st.sidebar.file_uploader('Upload your file here',type=['pdf'])
 
-    # constructs the data variable to show the pdf file
-    df_data = uploaded_file.getvalue()
-    base64_pdf = base64.b64encode(df_data).decode('utf-8')
-    pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
-
     # extract content from pdf file
     if uploaded_file is not None:
+
+        # constructs the data variable to show the pdf file
+        df_data = uploaded_file.getvalue()
+        base64_pdf = base64.b64encode(df_data).decode('utf-8')
+        pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
+
+
         if uploaded_file.name[-3:] == 'pdf':
             document = pdfparser.getPDF(uploaded_file)
             st.write("(pdf file)")
