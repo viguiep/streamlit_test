@@ -125,7 +125,7 @@ if source == choice_A:
     # constructs the data variable to show the pdf file
     df_data = uploaded_file.getvalue()
     base64_pdf = base64.b64encode(df_data).decode('utf-8')
-    pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
+    pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
 
     # extract content from pdf file
     if uploaded_file is not None:

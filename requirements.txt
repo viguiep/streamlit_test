@@ -1,12 +1,12 @@
 numpy
-spacy
+spacy=3.2.1
 # python -m spacy download en_core_web_md
 https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.0.0/en_core_web_md-3.0.0.tar.gz
 wikipedia
 # io
 # re
 PyMuPDF # fitz
-streamlit==0.74.1
+streamlit==1.3.0
 
-trafilatura
-base64
+trafilatura=1.0.0
+#base64
