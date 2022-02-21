@@ -66,8 +66,9 @@ def summarize(input_text, top_n=1):
   # Extracted sentences in chronological order
   top_sentences     = sorted(sent_strength.values(), reverse=True)
   top_sent          = top_sentences[:top_n]
-  summary_list      = [sent.text for sent,strength in sent_strength.items() if strength in top_sent]
+  summary_list      = [sent.text.lstrip(chr(10)) for sent,strength in sent_strength.items() if strength in top_sent]
   #summary_text      = "".join(x.text for x in summary)
+  # sentence.lstrip(chr(10)) => we suppress the line feed that starts some sentences
 
   return summary_list
 
