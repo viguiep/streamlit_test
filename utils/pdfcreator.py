@@ -4,7 +4,6 @@ import fpdf # PDF creation
 class PDF(fpdf.FPDF):
 
     def header(self):
-        title = 'Summarization of articles'
         self.set_font('Arial', 'B', 15) # Arial bold 15
 
         # Calculate width of title and position
@@ -17,7 +16,7 @@ class PDF(fpdf.FPDF):
         self.set_text_color(220, 50, 50)
 
         self.set_line_width(1) # Thickness of frame (1 mm)
-        self.cell(w, 9, title, 1, 1, 'C', 1) # Title
+        self.cell(w, 9, self.title, 1, 1, 'C', 1) # Title
         self.ln(20) # Line break
 
     def footer(self):
@@ -43,7 +42,7 @@ class PDF(fpdf.FPDF):
         self.chapter_title(title)
         self.chapter_body(content)
 
-def create_summary_pdf(summary_list, output_main_topics, my_remarks= 'I do not have any remark.'):
+def create_summary_pdf(summary_list, output_main_topics, my_remarks):
     pdf = PDF()
     pdf.set_title('Summarization of articles')
     pdf.set_author('Qoqaq.com')
@@ -54,3 +53,12 @@ def create_summary_pdf(summary_list, output_main_topics, my_remarks= 'I do not h
     pdf.print_chapter('Summary', summary_block)
     pdf.print_chapter('My remarks', my_remarks)
     pdf.output('Summary.pdf', 'F')
+
+def create_pdf(my_text):
+    pdf = PDF()
+    pdf.set_title('Original article')
+    pdf.set_author('Qoqaq.com')
+    #fpdf.add_font("Arial", "", "arial.ttf", uni=True)
+    pdf.add_page()
+    pdf.print_chapter('Original article', my_text)
+    pdf.output('tempo.pdf', 'F')

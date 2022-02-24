@@ -13,8 +13,8 @@ Get the pdf file
 def getPDF(uploaded_file):
     try:
         document = fitz.open(stream=uploaded_file.read(), filetype="pdf") # leads to a sys.stderr message:
-        st.write('Nb of pages:', len(document))
-        st.write('The pdf document was opened without problem.')
+        document.save('tempo.pdf') # save to use later on (merging with summary)
+        st.write('The document (%s, %i pages) was opened without problem.' % ('PDF', len(document)))
 
         return document
     except:

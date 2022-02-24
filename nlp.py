@@ -22,13 +22,27 @@ import streamlit.components.v1 as components # to insert HTML (ex. : to justify 
 from utils import utils, pdfparser, pdfcreator
 
 
-
+st.set_page_config(layout="wide") # takes the whole width of the screen
 
 # ******************************************
 # INITIALIZATIONS
 # ******************************************
 
-input_text = ''
+# SESSION STATE
+# if no previous 'input_text', I create a session variable.
+if 'input_text' not in st.session_state:
+    input_text = ''
+    st.session_state['input_text'] = ''
+else:
+    input_text = st.session_state['input_text']
+
+if 'remarks_default_remark' not in st.session_state:
+    remarks_default_remark = 'I do not have any remark.'
+    st.session_state['remarks_default_remark'] = remarks_default_remark
+else:
+    remarks_default_remark = st.session_state['remarks_default_remark']
+
+
 pdf_display = ''
 main_topics = []
 output_main_topics = ''
@@ -43,6 +57,7 @@ message_C = 'Upload your file here'
 sidebar_title = 'Text upload:'
 sidebar_radio_text = 'Choose the kind of text you want to upload:'
 sidebar_CHOICES = (choice_A, choice_B, choice_C)
+remarks_message = "Please enter your personal remarks on the document/summary (1,000 char max):"
 
 def header(url):
      st.markdown(f'<p style="background-color:#0066cc;color:#33ff33;font-size:24px;border-radius:2%;">{url}</p>', unsafe_allow_html=True)
@@ -64,7 +79,6 @@ if source == choice_C:
         downloaded = trafilatura.fetch_url(web_url)
         input_text = trafilatura.extract(downloaded)
     else:
-        input_text = ''
         st.sidebar.error('Enter a valid web url on the side menu.')
 
 if source == choice_B:
@@ -94,7 +108,6 @@ if source == choice_A:
 
         if uploaded_file.name[-3:] == 'pdf':
             document = pdfparser.getPDF(uploaded_file)
-            st.write("(pdf file)")
             my_blocks = pdfparser.getConjugatedBlocks(document)
             police = pdfparser.getMostCommon(my_blocks, 'police')
             size = pdfparser.getMostCommon(my_blocks, 'size')
@@ -106,10 +119,12 @@ if source == choice_A:
                     input_text += x['text']
                     input_text += '\n'
 
+
 # ***************************************************
 # GET THE NB OF SENTENCES & TOPICS
 # ***************************************************
 
+# utility function for error/warning messages on left & right columns
 def message_for_nb_sentences_or_topics(msg_variable, msg_warning, msg_left):
     # msg_left = True if left column, else False (right column)
     my_col = left_main_col if msg_left else right_main_col
@@ -119,24 +134,12 @@ def message_for_nb_sentences_or_topics(msg_variable, msg_warning, msg_left):
         my_col.warning(msg_warning % msg_variable)
 
 
-# ***************************************************
-# SUMMARY & TOPICS
-# ***************************************************
-
-
-# ******** ORIGINAL ARTICLE ********
-max_chars_output = 5000
-output_text = input_text[:max_chars_output]
-output_text = output_text.replace('\n', '<BR><BR>')
-html_article = """<p align="justify">""" + output_text + """</p>"""
-
 
 # ******************************************
 # DISPLAY RESULTS
 # ******************************************
 
 with st.container():
-
     # Header & Main title
     header("BETA VERSION 0.5")
     st.title('Summary of scientific articles')
@@ -152,6 +155,7 @@ with st.container():
 
 
     if input_text:
+        st.session_state['input_text'] = input_text
         # ******** SUMMARY ********
         # suppress references (and other content) inside parenthesis
         pattern = r'\([^)]*\)'
@@ -168,39 +172,54 @@ with st.container():
             main_topics = main_topics[:nb_topics]
             output_main_topics = ' - '.join(main_topics).upper()
 
+
         # ******** DISPLAY MAIN TOPICS ********
-        st.header('Main topics')
-        st.write('**' + output_main_topics + '**')
+        left_main_col.header('Main topics')
+        left_main_col.write('**' + output_main_topics + '**')
 
         # ******** DISPLAY SUMMARY ********
-        st.header('Summary:')
+        left_main_col.header('Summary:')
         if not input_text:
-            st.warning('There is no text to analyze yet.')
+            left_main_col.warning('There is no text to analyze yet.')
         else:
             for sentence in summary_list:
-                st.write('- '+sentence)
+                left_main_col.write('- ' + sentence)
+
+        # ******** PERSONAL REMARKS ********
+        left_main_col.header('Personal remarks')
+        remark_form = left_main_col.form(key='remark_form')
+        remarks_default_remark = remark_form.text_area(remarks_message, value = remarks_default_remark, max_chars=10000)
+        remark_submit = remark_form.form_submit_button(label='Update the Summary PDF')
+
+        if remark_submit:
+            st.session_state['remarks_message'] = remarks_default_remark
 
         # ******** SUMMARY PDF ********
-        # Improve the codec part (have it UTF not ASCII-latin1)
+        # ToDo: improve the codec part (have it UTF not ASCII-latin1)
 
-        pdfcreator.create_summary_pdf(summary_list, output_main_topics)
+        pdfcreator.create_summary_pdf(summary_list, output_main_topics, remarks_default_remark)
 
-        # DISPLAY SUMMARY PDF
+        # DISPLAY SUMMARY PDF (+ if checked box, includes the original document)
         # cf. https://blog.jcharistech.com/2020/11/30/how-to-embed-pdf-in-streamlit-apps/
-        with open('Summary.pdf', 'rb') as summary_file:
+
+        right_main_col.header('Summary PDF file')
+        agree = right_main_col.checkbox('Include original article')
+
+        with fitz.open("Summary.pdf") as doc_summary:
+            # if source is NOT a pdf (=> plain text, web page), we create a PDF for the original article
+            if source != choice_A:
+                pdfcreator.create_pdf(input_text)
+
+            if agree:
+                with fitz.open("tempo.pdf") as doc_original:
+                    doc_summary.insertPDF(doc_original)
+
+            doc_summary.save("Original_with_summary.pdf")
+
+        # load the pdf file of the summary (option: with the original article)
+        with open('Original_with_summary.pdf', 'rb') as summary_file:
             summary_df_data = summary_file.read()
             base64_summary_pdf = base64.b64encode(summary_df_data).decode('latin1')
             summary_pdf_display = F'<embed src="data:application/pdf;base64,{base64_summary_pdf}" width="700" height="1000" type="application/pdf">'
-            st.header('Summary PDF file')
-            st.markdown(summary_pdf_display, unsafe_allow_html=True)
 
-
-    # ******** ORIGINAL PDF ********
-    if source == choice_A:
-        st.header('Original PDF file')
-        st.markdown(pdf_display, unsafe_allow_html=True)
-
-
-    # ******** ORIGINAL ARTICLE ********
-    st.header('Original article (first %i characters):' % max_chars_output)
-    components.html(html_article, height = len(output_text) // 2)
+        right_main_col.markdown(summary_pdf_display, unsafe_allow_html=True)
