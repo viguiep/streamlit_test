@@ -103,3 +103,18 @@ def getConjugatedBlocks(document_pdf):
                         list_of_blocks.append(myDict)
     # print(s)
     return list_of_blocks
+
+def get_input_text_from_pdf(uploaded_file):
+    document = getPDF(uploaded_file)
+    my_blocks = getConjugatedBlocks(document)
+    police = getMostCommon(my_blocks, 'police')
+    size = getMostCommon(my_blocks, 'size')
+    color = getMostCommon(my_blocks, 'color')
+
+    input_text = ''
+    for x in my_blocks:
+        if x['police'] == police and x['size'] == size and x['color'] == color:
+            input_text += x['text']
+            input_text += '\n'
+
+    return input_text

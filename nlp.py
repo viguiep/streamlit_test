@@ -30,20 +30,13 @@ st.set_page_config(layout="wide") # takes the whole width of the screen
 
 # SESSION STATE
 # if no previous 'input_text', I create a session variable.
-if 'input_text' not in st.session_state:
-    input_text = ''
-    st.session_state['input_text'] = ''
-else:
-    input_text = st.session_state['input_text']
+input_text  = '' if 'input_text'  not in st.session_state else st.session_state['input_text']
+remarks_default_remark = 'I do not have any remark.' if 'remarks_default_remark' not in st.session_state else st.session_state['remarks_default_remark']
 
-if 'remarks_default_remark' not in st.session_state:
-    remarks_default_remark = 'I do not have any remark.'
-    st.session_state['remarks_default_remark'] = remarks_default_remark
-else:
-    remarks_default_remark = st.session_state['remarks_default_remark']
+st.session_state['input_text'] = input_text
+st.session_state['remarks_default_remark'] = remarks_default_remark
 
 
-pdf_display = ''
 main_topics = []
 output_main_topics = ''
 
@@ -91,33 +84,16 @@ if source == choice_B:
         st.sidebar.error('Please enter a text in English of minimum 1,000 characters')
 
 if source == choice_A:
-
     uploaded_file = st.sidebar.file_uploader(message_C,type=['pdf'])
-
     if uploaded_file is None:
         st.sidebar.error('Upload a pdf file.')
-
-    # extract content from pdf file
-    if uploaded_file is not None:
-
-        # constructs the data variable to show the pdf file
-        df_data = uploaded_file.getvalue()
-        base64_pdf = base64.b64encode(df_data).decode('utf-8')
-        pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
-
-
+    else:
+        # extract content from pdf file
         if uploaded_file.name[-3:] == 'pdf':
-            document = pdfparser.getPDF(uploaded_file)
-            my_blocks = pdfparser.getConjugatedBlocks(document)
-            police = pdfparser.getMostCommon(my_blocks, 'police')
-            size = pdfparser.getMostCommon(my_blocks, 'size')
-            color = pdfparser.getMostCommon(my_blocks, 'color')
-
+            input_text = pdfparser.get_input_text_from_pdf(uploaded_file)
+        else:
+            st.sidebar.error('This is not a pdf file.')
             input_text = ''
-            for x in my_blocks:
-                if x['police'] == police and x['size'] == size and x['color'] == color:
-                    input_text += x['text']
-                    input_text += '\n'
 
 
 # ***************************************************
