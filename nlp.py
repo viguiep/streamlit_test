@@ -196,6 +196,6 @@ with st.container():
         with open('Original_with_summary.pdf', 'rb') as summary_file:
             summary_df_data = summary_file.read()
             base64_summary_pdf = base64.b64encode(summary_df_data).decode('latin1')
-            summary_pdf_display = F'<embed src="data:application/pdf;base64,{base64_summary_pdf}" width="700" height="1000" type="application/pdf">'
+            summary_pdf_display = F'<iframe src="data:application/pdf;base64,{base64_summary_pdf}" width="700" height="1000" type="application/pdf">'
 
         right_main_col.markdown(summary_pdf_display, unsafe_allow_html=True)
