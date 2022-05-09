@@ -4,8 +4,8 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.0.0
 
 wikipedia==1.4.0
 PyMuPDF==1.19.3 # fitz
-streamlit==1.8
+streamlit==1.4.0
 trafilatura==1.0.0
 
 # io, re, numpy, base64
-fpdf
+fpdf==1.84
