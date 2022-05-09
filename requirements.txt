@@ -9,4 +9,4 @@ streamlit==1.4.0
 trafilatura==1.0.0
 
 # io, re, numpy, base64
-fpdf==1.84
+fpdf==1.7
